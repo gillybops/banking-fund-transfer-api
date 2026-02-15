@@ -2,6 +2,43 @@
 
 A production-ready REST API for secure fund transfers between bank accounts, built with Spring Boot and demonstrating enterprise-grade Java development practices.
 
+## 🌐 Live Demo
+
+**Production API**: https://api.gilliannewton.com  
+**Interactive Documentation**: https://api.gilliannewton.com/swagger-ui.html  
+**Source Code**: https://github.com/gillybops/banking-fund-transfer-api
+
+### Authentication
+- **Username**: `admin`
+- **Password**: `admin`
+
+### Quick Test
+```bash
+# Create an account
+curl -X POST https://api.gilliannewton.com/api/v1/accounts \
+  -u admin:admin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accountHolderName": "Demo User",
+    "initialBalance": 1000.00,
+    "currency": "USD"
+  }'
+
+# Check all accounts
+curl https://api.gilliannewton.com/api/v1/accounts -u admin:admin
+
+# Execute a transfer (use actual account numbers from previous response)
+curl -X POST https://api.gilliannewton.com/api/v1/transfers \
+  -u admin:admin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fromAccountNumber": "XXXX-XXXX-XXXX",
+    "toAccountNumber": "YYYY-YYYY-YYYY",
+    "amount": 250.00,
+    "description": "Payment for services"
+  }'
+```
+
 ## 🎯 Project Overview
 
 This API provides a complete banking fund transfer system with:
@@ -12,7 +49,9 @@ This API provides a complete banking fund transfer system with:
 - **Full Test Coverage**: Unit and integration tests included
 - **API Documentation**: Interactive Swagger UI
 - **Security**: Basic authentication with role-based access
-- **Modern Java 21**: Built with the latest LTS version featuring virtual threads support
+- **Modern Java 25**: Built with the cutting-edge Java 25 release featuring the latest language enhancements, performance improvements, and preview features
+- **Containerized Deployment**: Docker-ready with multi-stage builds
+- **Production Domain**: Deployed on custom domain with automatic SSL/TLS
 
 ## 🏗️ Architecture & Design Decisions
 
@@ -20,7 +59,7 @@ This API provides a complete banking fund transfer system with:
 
 1. **ACID Compliance**
    - **Atomicity**: Transactions are all-or-nothing (both debit and credit succeed or fail together)
-   - **Consistency**: Account balances never become negative; business rules are enforced
+   - **Consistency**: Business rules enforced (no negative balances)
    - **Isolation**: SERIALIZABLE isolation level prevents concurrent modification issues
    - **Durability**: Changes are persisted to database immediately
 
@@ -40,34 +79,24 @@ This API provides a complete banking fund transfer system with:
    - Proper use of HTTP status codes
    - Structured logging
    - Comprehensive API documentation
+   - Container-first deployment strategy
 
 ## 📋 Prerequisites
 
-- Java 21+
+- Java 25
 - Maven 3.6+
 - Git
+- Docker (optional, for containerized deployment)
 
-## 🚀 Quick Start (GitHub Codespaces)
+## 🚀 Quick Start
 
-### Step 1: Create Repository and Setup Project
-
-```bash
-# Create project directory
-mkdir -p BankingAPI
-cd BankingAPI
-
-# Initialize git
-git init
-git add .
-git commit -m "Initial commit: Banking Fund Transfer API"
-
-# Create GitHub repo (use gh CLI or web interface)
-gh repo create banking-fund-transfer-api --public --source=. --remote=origin --push
-```
-
-### Step 2: Build and Run
+### Local Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/gillybops/banking-fund-transfer-api.git
+cd banking-fund-transfer-api
+
 # Build the project
 mvn clean install
 
@@ -77,17 +106,31 @@ mvn spring-boot:run
 
 The API will start on `http://localhost:8080`
 
-### Step 3: Access API Documentation
+### Using Docker
 
-Open your browser and navigate to:
-- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-- **API Docs**: `http://localhost:8080/api-docs`
+```bash
+# Build the Docker image
+docker build -t banking-api .
 
-### Step 4: Authentication
+# Run the container
+docker run -p 8080:8080 banking-api
+```
 
-The API uses Basic Authentication. Default credentials:
-- **User**: `user` / `password` (USER role)
-- **Admin**: `admin` / `admin` (ADMIN role)
+### Using Docker Compose
+
+```bash
+docker-compose up
+```
+
+### Quick Start Script
+
+```bash
+# Make the script executable (if not already)
+chmod +x start.sh
+
+# Run the quick start script
+./start.sh
+```
 
 ## 📡 API Endpoints
 
@@ -106,7 +149,7 @@ Authorization: Basic YWRtaW46YWRtaW4=
 }
 ```
 
-Response:
+**Response:**
 ```json
 {
   "id": 1,
@@ -122,6 +165,12 @@ Response:
 #### Get Account Balance
 ```bash
 GET /api/v1/accounts/{accountNumber}/balance
+Authorization: Basic YWRtaW46YWRtaW4=
+```
+
+#### Get Account Details
+```bash
+GET /api/v1/accounts/{accountNumber}
 Authorization: Basic YWRtaW46YWRtaW4=
 ```
 
@@ -147,7 +196,7 @@ Authorization: Basic YWRtaW46YWRtaW4=
 }
 ```
 
-Response:
+**Response:**
 ```json
 {
   "transactionId": "TXN-A1B2C3D4",
@@ -183,73 +232,27 @@ mvn test -Dtest=TransferServiceTest
 - Unit tests for service layer logic
 - Integration tests for end-to-end API workflows
 - Validation tests for error scenarios
+- Concurrency tests for race condition prevention
 
-## 🌐 Deployment to Your Domain
+## 🌐 API Documentation
 
-### Option 1: Deploy to Render.com (Free Tier)
+### Swagger UI (Interactive)
+- **Local**: http://localhost:8080/swagger-ui.html
+- **Production**: https://api.gilliannewton.com/swagger-ui.html
 
-1. Create a `render.yaml` in project root:
-```yaml
-services:
-  - type: web
-    name: banking-api
-    env: java
-    buildCommand: mvn clean install
-    startCommand: java -jar target/banking-api-1.0.0.jar
-    envVars:
-      - key: JAVA_TOOL_OPTIONS
-        value: -Xmx512m
-```
-
-2. Connect your GitHub repository to Render
-3. Your API will be available at: `https://banking-api-xxxxx.onrender.com`
-
-### Option 2: Deploy to Railway.app
-
-1. Install Railway CLI:
-```bash
-npm i -g @railway/cli
-```
-
-2. Deploy:
-```bash
-railway login
-railway init
-railway up
-```
-
-3. Add custom domain in Railway dashboard
-
-### Option 3: Deploy to AWS Elastic Beanstalk
-
-```bash
-# Install AWS EB CLI
-pip install awsebcli
-
-# Initialize EB application
-eb init -p java-21 banking-api
-
-# Create and deploy
-eb create banking-api-env
-eb deploy
-```
-
-### Configure Custom Domain
-
-After deployment, point your domain to the service:
-1. Add a CNAME record: `api.yourdomain.com` → `your-app-url.com`
-2. Update the base URL in your demo
-3. Enable HTTPS (most platforms provide free SSL)
+### OpenAPI Specification
+- **Local**: http://localhost:8080/api-docs
+- **Production**: https://api.gilliannewton.com/api-docs
 
 ## 📊 Database
 
 ### H2 In-Memory Database (Development)
-- Access H2 Console: `http://localhost:8080/h2-console`
-- JDBC URL: `jdbc:h2:mem:bankingdb`
-- Username: `sa`
-- Password: (leave blank)
+- **Access H2 Console**: http://localhost:8080/h2-console
+- **JDBC URL**: `jdbc:h2:mem:bankingdb`
+- **Username**: `sa`
+- **Password**: (leave blank)
 
-### Production Database (PostgreSQL)
+### PostgreSQL (Production Ready)
 
 Update `application.properties`:
 ```properties
@@ -267,125 +270,172 @@ Add PostgreSQL dependency to `pom.xml`:
 </dependency>
 ```
 
-## 🔒 Security Considerations
+## 🚢 Deployment
 
-### For Production Deployment:
+### Deploy to Render.com
 
-1. **Enable HTTPS**: Always use TLS/SSL
-2. **Strong Authentication**: 
-   - Replace in-memory users with database-backed authentication
-   - Implement JWT tokens for stateless auth
-3. **Rate Limiting**: Add request throttling
-4. **Enable CSRF**: Remove CSRF disable for production
-5. **Input Sanitization**: Already implemented via validation
-6. **Audit Logging**: Log all transactions and authentication attempts
+The application is configured for automatic deployment to Render.com with Docker.
 
-## 🎨 Demo for Recruiter
+1. **Fork/Clone this repository**
+2. **Sign up at Render.com**
+3. **Create a new Web Service**:
+   - Connect your GitHub repository
+   - Render auto-detects the Dockerfile
+   - Instance Type: Free
+4. **Deploy** - Automatic builds on every push to main
 
-### Prepare a Live Demo
+### Custom Domain Setup
 
-1. **Deploy to a live URL**
-2. **Create sample data**:
+The production instance runs on a custom domain with automatic SSL:
+
+1. **In Render**: Settings → Custom Domain → Add `api.yourdomain.com`
+2. **In DNS Provider**: Add CNAME record pointing to Render URL
+3. **Wait for SSL**: Automatic Let's Encrypt certificate provisioning
+
+Current production domain: **api.gilliannewton.com**
+
+### Environment Variables (Production)
+
 ```bash
-# Create two demo accounts
-curl -X POST http://your-domain.com/api/v1/accounts \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{"accountHolderName":"Alice Smith","initialBalance":5000.00,"currency":"USD"}'
+# Optional: Adjust JVM memory
+JAVA_TOOL_OPTIONS=-Xmx512m
 
-curl -X POST http://your-domain.com/api/v1/accounts \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{"accountHolderName":"Bob Johnson","initialBalance":3000.00,"currency":"USD"}'
+# Optional: Active Spring profile
+SPRING_PROFILES_ACTIVE=prod
 ```
 
-3. **Demonstrate key scenarios**:
-   - Successful transfer
-   - Insufficient funds error
-   - Invalid account error
-   - Concurrent transfer handling
+## 🔒 Security Considerations
 
-4. **Show Swagger UI** at `https://your-domain.com/swagger-ui.html`
+### Current Implementation (Demo/Development)
+- Basic Authentication with in-memory users
+- CSRF disabled for API-only access
+- H2 in-memory database
 
-### Talking Points for JP Morgan
-
-✅ **Technical Skills Demonstrated**:
-- Spring Boot framework (industry standard for microservices)
-- RESTful API design following best practices
-- Transaction management and ACID compliance
-- Concurrent programming with pessimistic locking
-- TDD with comprehensive test coverage
-- API documentation with OpenAPI/Swagger
-- Security implementation with Spring Security
-- Database design with JPA/Hibernate
-- Error handling and validation
-
-✅ **Enterprise Concepts**:
-- Microservice architecture patterns
-- Clean code and SOLID principles
-- Repository and DTO patterns
-- Logging and monitoring readiness
-- Deployment automation
-
-✅ **Rapid Learning Demonstration**:
-- Built production-grade API in <2 hours
-- Understood and applied complex concepts (ACID, concurrency)
-- Created deployable, testable, documented code
-- Ready for real-world financial applications
+### Production Recommendations
+1. **Authentication**: Replace in-memory users with database-backed authentication
+2. **Authorization**: Implement JWT tokens for stateless auth
+3. **HTTPS**: Always use TLS/SSL (configured via Render)
+4. **Rate Limiting**: Add request throttling to prevent abuse
+5. **CSRF**: Enable for production if using cookies
+6. **Database**: Use PostgreSQL or MySQL with proper connection pooling
+7. **Secrets Management**: Use environment variables or vault services
+8. **Audit Logging**: Log all transactions and authentication attempts
+9. **Input Sanitization**: Already implemented via Jakarta Validation
+10. **API Keys**: Consider API key authentication for service-to-service calls
 
 ## 📁 Project Structure
 
 ```
-BankingAPI/
+banking-fund-transfer-api/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/banking/api/
-│   │   │   ├── BankingApiApplication.java
+│   │   │   ├── BankingApiApplication.java      # Main Spring Boot application
 │   │   │   ├── config/
-│   │   │   │   ├── OpenApiConfig.java
-│   │   │   │   └── SecurityConfig.java
+│   │   │   │   ├── OpenApiConfig.java          # Swagger/OpenAPI configuration
+│   │   │   │   └── SecurityConfig.java         # Spring Security configuration
 │   │   │   ├── controller/
-│   │   │   │   ├── AccountController.java
-│   │   │   │   └── TransferController.java
+│   │   │   │   ├── AccountController.java      # Account REST endpoints
+│   │   │   │   └── TransferController.java     # Transfer REST endpoints
 │   │   │   ├── dto/
-│   │   │   │   ├── AccountDTO.java
-│   │   │   │   └── TransferDTO.java
+│   │   │   │   ├── AccountDTO.java             # Account data transfer objects
+│   │   │   │   └── TransferDTO.java            # Transfer data transfer objects
 │   │   │   ├── exception/
-│   │   │   │   ├── BankingException.java
-│   │   │   │   └── GlobalExceptionHandler.java
+│   │   │   │   ├── BankingException.java       # Custom exceptions
+│   │   │   │   └── GlobalExceptionHandler.java # Centralized error handling
 │   │   │   ├── model/
-│   │   │   │   ├── Account.java
-│   │   │   │   └── Transaction.java
+│   │   │   │   ├── Account.java                # Account entity
+│   │   │   │   └── Transaction.java            # Transaction entity
 │   │   │   ├── repository/
-│   │   │   │   ├── AccountRepository.java
-│   │   │   │   └── TransactionRepository.java
+│   │   │   │   ├── AccountRepository.java      # Account data access
+│   │   │   │   └── TransactionRepository.java  # Transaction data access
 │   │   │   └── service/
-│   │   │       ├── AccountService.java
-│   │   │       └── TransferService.java
+│   │   │       ├── AccountService.java         # Account business logic
+│   │   │       └── TransferService.java        # Transfer business logic (ACID)
 │   │   └── resources/
-│   │       └── application.properties
+│   │       └── application.properties          # Application configuration
 │   └── test/
 │       └── java/com/banking/api/
 │           ├── controller/
-│           │   └── BankingApiIntegrationTest.java
+│           │   └── BankingApiIntegrationTest.java  # Integration tests
 │           └── service/
-│               └── TransferServiceTest.java
-├── pom.xml
-└── README.md
+│               └── TransferServiceTest.java        # Unit tests
+├── Dockerfile                                   # Multi-stage Docker build
+├── docker-compose.yml                          # Docker Compose configuration
+├── pom.xml                                     # Maven dependencies
+├── start.sh                                    # Quick start script
+└── README.md                                   # This file
 ```
+
+## 💡 Key Features & Learning Outcomes
+
+### Java 25 Features Utilized
+- **Latest Language Features**: Taking advantage of the most recent Java innovations
+- **Enhanced Pattern Matching**: Advanced switch expressions and pattern matching
+- **Performance Optimizations**: Latest JVM improvements and garbage collection enhancements
+- **Preview Features**: Access to cutting-edge Java capabilities
+- **Virtual Threads**: Scalable concurrency model for high-throughput applications
+- **Modern Syntax**: Leveraging the latest language improvements for cleaner code
+
+### Spring Boot 3.3+ Features
+- **Jakarta EE**: Migration from javax to jakarta namespace
+- **Native Compilation**: GraalVM ready (future enhancement)
+- **Observability**: Ready for Micrometer metrics
+
+### Banking Domain Concepts
+- **Double-Entry Bookkeeping**: Every transfer debits one account and credits another
+- **Transaction Isolation**: Preventing dirty reads and lost updates
+- **Idempotency**: Transaction IDs prevent duplicate processing
+- **Audit Trail**: Complete transaction history
+
+## 🎓 Learning Path (Python → Java)
+
+This project demonstrates rapid learning and adaptation:
+
+### Concepts Transferred from Python
+- RESTful API design (Flask/FastAPI → Spring Boot)
+- ORM patterns (SQLAlchemy → JPA/Hibernate)
+- Testing discipline (pytest → JUnit)
+- Dependency injection (implicit → Spring DI)
+
+### New Concepts Mastered
+- Static typing and compilation
+- Annotations-based configuration
+- Enterprise design patterns
+- JVM ecosystem and tooling
+- Maven build lifecycle
+
+### Time Investment
+- **Initial Build**: 3.5 hours (learning + implementation)
+- **Deployment**: 1 hour
+- **Documentation**: 30 minutes
+- **Total**: ~5 hours from zero Java to production deployment
 
 ## 🤝 Contributing
 
-This is a demo project, but suggestions are welcome! Open an issue or submit a PR.
+This is a demonstration project, but suggestions are welcome!
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/improvement`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/improvement`)
+5. Open a Pull Request
 
 ## 📄 License
 
-Apache 2.0
+Apache 2.0 - See LICENSE file for details
 
 ## 📞 Contact
 
-For questions about this implementation, please reach out to [your-email@example.com]
+**Developer**: Gillian Newton  
+**Email**: gillian@gilliannewton.com
+
+## 🙏 Acknowledgments
+
+- Spring Boot team for excellent framework
 
 ---
 
 **Built with ❤️ to demonstrate rapid Java learning and enterprise development skills**
+
+*From zero Java knowledge to production-deployed API in one day*
