@@ -11,28 +11,35 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
     
+    private final CorsConfigurationSource corsConfigurationSource;
+    
+    public SecurityConfig(CorsConfigurationSource corsConfigurationSource) {
+        this.corsConfigurationSource = corsConfigurationSource;
+    }
+    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disable for demo; enable in production
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .httpBasic(httpBasic -> {}) // Basic authentication
-            .headers(headers -> headers.frameOptions(frame -> frame.disable())); // For H2 console
+            .httpBasic(httpBasic -> {})
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()));
         
         return http.build();
     }
     
     @Bean
     public UserDetailsService userDetailsService() {
-        // Demo users (use database authentication in production)
         UserDetails user = User.builder()
             .username("user")
             .password(passwordEncoder().encode("password"))
